@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:fundamental_flutter/article.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,71 +13,106 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'News App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: '/',
+      initialRoute: NewsListPage.routeName,
       routes: {
-        '/': (context) => FirstScreen(),
-        '/secondScreen': (context) => SecondScreen(),
-        '/secondScreenWithData': (context) => SecondScreenWithData(
-            ModalRoute.of(context)?.settings.arguments as String),
-        '/returnDataScreen': (context) => ReturnDataScreen(),
-        '/replacementScreen': (context) => ReplacementScreen(),
-        '/anotherScreen': (context) => AnotherScreen(),
+        NewsListPage.routeName: (context) => NewsListPage(),
+        ArticleDetailPage.routeName: (context) => ArticleDetailPage(
+            article: ModalRoute.of(context)?.settings.arguments as Article),
+        ArticleWebView.routeName: (context) => ArticleWebView(
+              url: ModalRoute.of(context)?.settings.arguments as String,
+            ),
       },
     );
   }
 }
 
-class FirstScreen extends StatelessWidget {
+class NewsListPage extends StatelessWidget {
+  static const routeName = '/article_list';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('News App')),
+      body: FutureBuilder<String?>(
+        future:
+            DefaultAssetBundle.of(context).loadString('assets/articles.json'),
+        builder: (context, snapshot) {
+          final List<Article> articles = parseArticles(snapshot.data);
+          return ListView.builder(
+            itemCount: articles.length,
+            itemBuilder: (context, index) {
+              return _buildArticleItem(context, articles[index]);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildArticleItem(BuildContext context, Article article) {
+    return ListTile(
+      onTap: () {
+        Navigator.pushNamed(context, ArticleDetailPage.routeName,
+            arguments: article);
+      },
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      leading: Image.network(
+        article.urlToImage,
+        width: 100,
+      ),
+      title: Text(article.title),
+      subtitle: Text(article.author),
+    );
+  }
+}
+
+class ArticleDetailPage extends StatelessWidget {
+  static const routeName = '/article_detail';
+
+  final Article article;
+
+  const ArticleDetailPage({required this.article});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Navigation & Routing'),
+        title: Text(article.title),
       ),
-      body: Center(
+      body: SingleChildScrollView(
           child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
+        children: [
+          Image.network(article.urlToImage),
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/secondScreen');
-              },
-              child: Text('Go to Second Screen'),
+            padding: EdgeInsets.all(10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(article.description),
+                Divider(color: Colors.grey),
+                Text(article.title,
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24)),
+                Divider(color: Colors.grey),
+                Text('Author: ${article.author}'),
+                Divider(color: Colors.grey),
+                Text(article.content, style: TextStyle(fontSize: 16)),
+                SizedBox(height: 10),
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, ArticleWebView.routeName,
+                          arguments: article.url);
+                    },
+                    child: Text('Read more')),
+              ],
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/secondScreenWithData',
-                      arguments: 'Hello from First Screen!');
-                },
-                child: Text('Navigation with Data')),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-                onPressed: () async {
-                  final result =
-                      await Navigator.pushNamed(context, '/returnDataScreen');
-                  SnackBar snackBar = SnackBar(content: Text('$result'));
-                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                },
-                child: Text('Return Data from Another Screen')),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/replacementScreen');
-                },
-                child: Text('Replace Screen')),
           ),
         ],
       )),
@@ -83,94 +120,22 @@ class FirstScreen extends StatelessWidget {
   }
 }
 
-class SecondScreen extends StatelessWidget {
+class ArticleWebView extends StatelessWidget {
+  static const routeName = '/article_web';
+
+  final String url;
+
+  const ArticleWebView({required this.url});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: ElevatedButton(
-          child: Text('Back'),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+      appBar: AppBar(
+        title: Text('News App'),
+      ),
+      body: WebView(
+        initialUrl: url,
       ),
     );
-  }
-}
-
-class SecondScreenWithData extends StatelessWidget {
-  final String data;
-
-  const SecondScreenWithData(this.data);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(data),
-            ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text('Back')),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class ReturnDataScreen extends StatefulWidget {
-  @override
-  _ReturnDataScreenState createState() => _ReturnDataScreenState();
-}
-
-class _ReturnDataScreenState extends State<ReturnDataScreen> {
-  final _textController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          children: [
-            TextField(
-              controller: _textController,
-              decoration: InputDecoration(labelText: 'Enter your name'),
-            ),
-            ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context, _textController.text);
-                },
-                child: Text('Send')),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class ReplacementScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-          child: ElevatedButton(
-              child: Text('Open Another Screen'),
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/anotherScreen');
-              })),
-    );
-  }
-}
-
-class AnotherScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
   }
 }
