@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'article.dart';
-import 'package:fundamental_flutter/assets/widgets/custome_scaffold.dart';
+import '../data/model/article.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+
+import 'article_web_view.dart';
 
 class ArticleDetailPage extends StatelessWidget {
   static const routeName = '/article_detail';
@@ -50,23 +51,6 @@ class ArticleDetailPage extends StatelessWidget {
           ),
         ],
       )),
-    );
-  }
-}
-
-class ArticleWebView extends StatelessWidget {
-  static const routeName = '/article_web';
-
-  final String url;
-
-  const ArticleWebView({required this.url});
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomeScaffold(
-      body: WebView(
-        initialUrl: url,
-      ),
     );
   }
 }
