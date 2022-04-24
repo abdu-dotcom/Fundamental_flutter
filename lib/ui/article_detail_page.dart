@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../data/model/article.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 import 'article_web_view.dart';
 
