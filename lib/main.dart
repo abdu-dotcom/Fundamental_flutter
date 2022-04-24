@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:fundamental_flutter/data/model/article.dart';
-import 'package:fundamental_flutter/common/style.dart';
+import 'package:fundamental_flutter/article.dart';
+import 'package:fundamental_flutter/assets/style.dart';
 import 'package:fundamental_flutter/assets/Typography/merriweather.dart';
-import 'ui/article_web_view.dart';
-import 'ui/article_detail_page.dart';
-import 'ui/home_page.dart';
+import 'detail_page.dart';
+import 'list_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -35,13 +34,10 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        bottomNavigationBarTheme: BottomNavigationBarThemeData(
-            selectedItemColor: SecondaryColor,
-            unselectedItemColor: Colors.grey),
       ),
-      initialRoute: HomePage.routeName,
+      initialRoute: NewsListPage.routeName,
       routes: {
-        HomePage.routeName: (context) => HomePage(),
+        NewsListPage.routeName: (context) => NewsListPage(),
         ArticleDetailPage.routeName: (context) => ArticleDetailPage(
             article: ModalRoute.of(context)?.settings.arguments as Article),
         ArticleWebView.routeName: (context) => ArticleWebView(
